@@ -74,7 +74,7 @@ def MuxInstall(app, version):
 def main():
 	# IMPLEMENTATION MISSING!
 	debug("Reading config file: " + sys.argv[1])
-	config = ConfigParser.RawConfigParser()
+	config = ConfigParser.SafeConfigParser()
 	config.readfp(open(sys.argv[1], 'r'))
 	debug("Creating app: " + config.get('application', 'name'))
 	debug("With basepath: " + config.get('application', 'basepath'))
