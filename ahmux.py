@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 
+BIN_PATH = r'C:\bin'
 DEBUG = True
 
 def debug(msg):
@@ -11,7 +12,6 @@ def debug(msg):
 
 
 class Application:
-	BIN_PATH = r'C:\bin'
 	_env_vars = []
 	_exes = []
 
@@ -20,10 +20,13 @@ class Application:
 		self._basedir = basedir
 
 	def addEnvironmentVariable(self, name, value):
-		self._env_vars.append(name, value)
+		self._env_vars.append((name, value))
 
 	def addExecutable(self, exe):
 		self._exes.append(exe)
+
+	def getBasedir(self):
+		return self._basedir
 
 	def _rebase(self, val, new_basedir):
 		if val.startswith(self._basedir):
@@ -31,20 +34,20 @@ class Application:
 		return val
 
 	def changeBasedir(self, new_basedir):
-		self._env_vars = [(key, _rebase(val, new_basedir)) for (key, val) in self._env_vars]
+		self._env_vars = [(key, self._rebase(val, new_basedir)) for (key, val) in self._env_vars]
 		self._basedir = new_basedir
 
 	def createLaunchers(self, suffix=""):
-		for exe in self.exes:
+		for exe in self._exes:
 			launcher = open(os.path.join(BIN_PATH, exe.name + suffix + ".bat"), "w")
-			debug("Creating launcher: " + launcher)
+			debug("Creating launcher: " + launcher.name)
 			launcher.write("@ECHO OFF\n")
 			for key, val in self._env_vars:
 				launcher.write("set ")
 				launcher.write(key + "=\"" + val + "\"")
 				launcher.write("\n")
 			launcher.write("\n")
-			if (launcher.gui):
+			if (exe.gui):
 				launcher.write("start \"\" ")
 			launcher.write("\"" + os.path.join(self._basedir, exe.path) + "\"")
 			launcher.write(" %*")
@@ -60,9 +63,9 @@ class Executable:
 
 
 def MuxInstall(app, version):
-	newbase = app.basedir + '-' + version
+	newbase = app.getBasedir() + '-' + version
 	debug("Copying install to: " + newbase)
-	shutil.copytree(app.basedir, newbase)
+	shutil.copytree(app.getBasedir(), newbase)
 	debug("Rebasing the app.")
 	app.changeBasedir(newbase)
 	debug("Creating launchers.")
