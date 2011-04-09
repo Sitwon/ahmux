@@ -1,6 +1,14 @@
+import ConfigParser
 import os
 import shutil
 import sys
+
+DEBUG = True
+
+def debug(msg):
+	if DEBUG:
+		print msg
+
 
 class Application:
 	BIN_PATH = r'C:\bin'
@@ -29,6 +37,7 @@ class Application:
 	def createLaunchers(self, suffix=""):
 		for exe in self.exes:
 			launcher = open(os.path.join(BIN_PATH, exe.name + suffix + ".bat"), "w")
+			debug("Creating launcher: " + launcher)
 			launcher.write("@ECHO OFF\n")
 			for key, val in self._env_vars:
 				launcher.write("set ")
@@ -52,13 +61,33 @@ class Executable:
 
 def MuxInstall(app, version):
 	newbase = app.basedir + '-' + version
+	debug("Copying install to: " + newbase)
 	shutil.copytree(app.basedir, newbase)
+	debug("Rebasing the app.")
 	app.changeBasedir(newbase)
+	debug("Creating launchers.")
 	app.createLaunchers('-' + version)
 
 def main():
 	# IMPLEMENTATION MISSING!
-	pass
+	debug("Reading config file: " + sys.argv[1])
+	config = ConfigParser.RawConfigParser()
+	config.readfp(open(sys.argv[1], 'r'))
+	debug("Creating app: " + config.get('application', 'name'))
+	debug("With basepath: " + config.get('application', 'basepath'))
+	app = Application(config.get('application', 'name'), config.get('application', 'basepath'))
+	for name, value in config.items('environment'):
+		debug("Adding EV: " + name + "=" + value)
+		app.addEnvironmentVariable(name, value)
+	for name in config.get('application', 'exes').split(','):
+		name = name.strip()
+		debug("Adding exe: " + name)
+		debug("With path: " + config.get(name, 'path'))
+		debug("GUI: " + config.get(name, 'gui'))
+		app.addExecutable(Executable(name, config.get(name, 'path'), config.getboolean(name, 'gui')))
+	debug("MuxInstalling as version: " + config.get('application', 'version'))
+	MuxInstall(app, config.get('application', 'version'))
+	debug("Done.")
 
 if __name__=='__main__':
 	main()
