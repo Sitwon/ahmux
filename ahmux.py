@@ -62,6 +62,9 @@ class Executable:
 		self.gui = gui
 
 
+def printUsage():
+	stderr.write("Usage: python ahmux.py <config.ini>\n")
+
 def MuxInstall(app, version):
 	newbase = app.getBasedir() + '-' + version
 	debug("Copying install to: " + newbase)
@@ -72,7 +75,9 @@ def MuxInstall(app, version):
 	app.createLaunchers('-' + version)
 
 def main():
-	# IMPLEMENTATION MISSING!
+	if (len(sys.argv) != 2):
+		printUsage()
+		sys.exit(1)
 	debug("Reading config file: " + sys.argv[1])
 	config = ConfigParser.SafeConfigParser()
 	config.readfp(open(sys.argv[1], 'r'))
