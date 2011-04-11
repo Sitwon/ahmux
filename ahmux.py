@@ -63,7 +63,7 @@ class Executable:
 
 
 def printUsage():
-	stderr.write("Usage: python ahmux.py <config.ini>\n")
+	sys.stderr.write("Usage: python ahmux.py <config.ini>\n")
 
 def MuxInstall(app, version):
 	newbase = app.getBasedir() + '-' + version
